@@ -4,7 +4,7 @@ A Linux security project focused on privilege escalation, binary exploitation, s
 
 ## Authors
 
-Snow Crash is developed by me as an individual project at 42 École, showcasing practical understanding of Linux systems, Unix permissions, process execution, shell environments, binary analysis, privilege escalation, and common system-level vulnerabilities.
+Snow Crash is developed by me as an individual CTF project challenge, showcasing practical understanding of Linux systems, Unix permissions, process execution, shell environments, binary analysis, privilege escalation, and common system-level vulnerabilities.
 
 ## Key Features
 
