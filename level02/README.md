@@ -1,15 +1,14 @@
+# Level 02
 
-****************************************
-*               Level 02               *
-****************************************
-
-Description :
+## Description
 
 Ok, so now we are logged in the account "level02", let's see what's in there :
 
+```
 level02@SnowCrash:~$ ls
 level02.pcap
 level02@SnowCrash:~$ 
+```
 
 Interesting... this time we have a file named "level02.pcap", let's try to read it to see what's in this network traffic recording to see if we can find something interesting :
 
@@ -19,6 +18,7 @@ I prefer using Wireshark, so we need to copy the ".pcap" file in our host (using
 
 So, in our host machine we go to the directory that we want to copy the file (like "Downloads") and we open a new terminal to launch a new "ssh/scp" connection with our VM :
 
+```
 scp -P 4243 level02@127.0.0.1:/home/user/level02/level02.pcap .
 	   _____                      _____               _     
 	  / ____|                    / ____|             | |    
@@ -32,19 +32,23 @@ scp -P 4243 level02@127.0.0.1:/home/user/level02/level02.pcap .
           10.0.2.15 
 level02@127.0.0.1's password: <flag01>
 level02.pcap  100% 8302     6.2MB/s   00:00  
+```
 
 Bingo, now we have the ".pcap" file in our host, so now we can open it with Wireshark :
 
 We see the packets panel, let's try a simple filtering :
 
+```
 tcp contains "login" 
+```
 
-Ok, nothing interesting yet, let's see the full TCP stream : Analyze → Follow → TCP Stream 
+Ok, nothing interesting yet, let's see the full TCP stream : Analyze → Follow → TCP Stream
 
 In a Telnet connection (like the one displayed here in the TCP packets), every key the user presses is sent across the network in plaintext.
 
 We get this :
 
+```
 ...
 Linux 2.6.38-8-generic-pae (::ffff:10.1.1.2) (pts/10)
 
@@ -56,11 +60,13 @@ Password: ft_wandr...NDRel.L0L
 Login incorrect
 wwwbugs login: 
 ...
+```
 
 So, the password is "Password: ft_wandr...NDRel.L0L", but the 3 dots here are non-printable Ascii values, let's see what their Ascii value is using the window's "Show data as: C Arrays" option :
 
 Examining the packets payload we quickly find this section :
 
+```c
 char peer0_13[] = { /* Packet 45 */
 0x66 };
 char peer0_14[] = { /* Packet 47 */
@@ -103,9 +109,11 @@ char peer0_32[] = { /* Packet 83 */
 0x4c };
 char peer0_33[] = { /* Packet 85 */
 0x0d };
+```
 
 So, we "translate" each Ascii for each packet :
 
+```
 0x66 = f
 0x74 = t
 0x5f = _
@@ -127,13 +135,15 @@ So, we "translate" each Ascii for each packet :
 0x30 = 0
 0x4c = L
 0x0d = CR (carriage return)
+```
 
-It seems that the user first typed “ft_wandr”, then pressed backspace three times, deleting the last three characters, he then continued by typing “NDRel”. After that, he deleted the final “l” and replaced it with “L0L”, before pressing Enter to submit the password.
+It seems that the user first typed "ft_wandr", then pressed backspace three times, deleting the last three characters, he then continued by typing "NDRel". After that, he deleted the final "l" and replaced it with "L0L", before pressing Enter to submit the password.
 
-So the final result is: “ft_waNDReL0L”
+So the final result is: "ft_waNDReL0L"
 
 Let's try this for the "flag02" :
 
+```
 level02@SnowCrash:~$ su flag02
 Password: ft_waNDReL0L
 Don't forget to launch getflag !
@@ -143,3 +153,4 @@ flag02@SnowCrash:~$ su level03
 Password: kooda2puivaav1idi4f57q8iq
 
 level03@SnowCrash:~$ 
+```

